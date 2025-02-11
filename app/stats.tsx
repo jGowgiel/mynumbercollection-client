@@ -9,6 +9,7 @@ import { StyleSheet } from "react-native";
 import { useData } from "@/DataContext";
 import { getGrantString, Grant } from "@/model/Grant";
 import { useState } from "react";
+import { MicroCardView } from "@/components/MicroCardView";
 
 interface StatResult {
     output: number[];
@@ -19,6 +20,7 @@ interface StatEntry {
     title: string;
     isAbsolute?: boolean;
     requiresNegatives?: boolean;
+    useCardView?: boolean;
     calc: () => StatResult;
 }
 
@@ -86,6 +88,16 @@ export default function Stats() {
             .reduce((acc, num) => acc + `, ${num}`, `${numberArray[0]}`);
     }
 
+    function numberResultView(result: StatResult, useCardView: boolean) {
+        if (result.output.length == 1 && useCardView) {
+            return <MicroCardView number={result.output[0]} />;
+        } else if (result.output.length >= 1) {
+            return numberString(result.output);
+        } else {
+            return "None";
+        }
+    }
+
     /** @returns a single stat-line view for the given statFunc */
     function makeStatLine(
         {
@@ -93,6 +105,7 @@ export default function Stats() {
             calc,
             isAbsolute = false,
             requiresNegatives = false,
+            useCardView = false,
         }: StatEntry,
         index: number,
     ) {
@@ -109,9 +122,7 @@ export default function Stats() {
                         isAbsolute && hasNegatives ? " (absolute)" : ""
                     }`}</Text>
                     <Text style={{ flexBasis: 150 }}>
-                        {result.output.length > 0
-                            ? numberString(result.output)
-                            : "None"}
+                        {numberResultView(result, useCardView)}
                     </Text>
                     <Text style={{ flexBasis: 300 }}>
                         {result.additionalText}
@@ -152,6 +163,7 @@ export default function Stats() {
     const records = [
         {
             title: "Largest number",
+            useCardView: true,
             calc: () => {
                 const largest = sortedFlatPulls[sortedFlatPulls.length - 1];
 
@@ -166,6 +178,7 @@ export default function Stats() {
         },
         {
             title: "Smallest number",
+            useCardView: true,
             requiresNegatives: true,
             calc: () => {
                 const smallest = sortedFlatPulls[0];
@@ -188,7 +201,6 @@ export default function Stats() {
                 };
             },
         },
-
         {
             title: "Days passed since highest pull",
             calc: () => {
@@ -255,6 +267,7 @@ export default function Stats() {
     const duplicatesAndCopies = [
         {
             title: "Most frequently pulled number",
+            useCardView: true,
             calc: () => {
                 let mostFrequentPull = [0];
                 let mostFrequentCount = 0;
@@ -274,6 +287,7 @@ export default function Stats() {
         },
         {
             title: "Largest duplicate number",
+            useCardView: true,
             calc: () => {
                 let largestDuplicate = 0;
                 let largestDuplicateCount = 0;
